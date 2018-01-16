@@ -30,13 +30,11 @@ def main():
     import gzip
     from gzip import GzipFile
     import shutil
-    
-##    with gzip.open('drugbank_all_full_database.xml.zip', 'rb') as f_in, open('drugbank_full_db.xml', 'wb') as f_out:
-##        shutil.copyfileobj(f_in, f_out)
+
         
     print "Connecting to GraphDB"
-    in_file = open('full_database.xml', 'r')
-    driver = GraphDatabase.driver("bolt://127.0.0.1/:7687", auth=basic_auth("neo4j", "neo4j2"))
+    in_file = open('full_database.xml', 'r') # Downloaded from https://www.drugbank.ca/releases/latest
+    driver = GraphDatabase.driver("bolt://127.0.0.1/:7687", auth=basic_auth("neo4j", "neo4j2")) # Change for authentication
     session = driver.session()
     print "Connected to DB!"
     update_drugbank_cmpds(session, drugbank_process_xml(in_file))
