@@ -1,3 +1,8 @@
+from __future__ import print_function
+
+from paths import DrugBank_ZIP
+from paths import SPOKE_URI, SPOKE_User, SPOKE_Password
+
 CYPHER_AddCmpd = """
     CREATE (c:Compound)
     SET c.name = {name}, c.identifier = {identifier},
@@ -27,17 +32,16 @@ CYPHER_UpdateIdentifier = """
 
 def main():
     from neo4j.v1 import GraphDatabase, basic_auth
-    import gzip
-    from gzip import GzipFile
-    import shutil
-
+    import zipFile
+    
+    dbank_archive = zipFile.ZipFile(DrugBank_ZIP) 
+    drugbank_xml = dbank_archive.read('full database.xml')
         
     print "Connecting to GraphDB"
-    in_file = open('full_database.xml', 'r') # Downloaded from https://www.drugbank.ca/releases/latest
-    driver = GraphDatabase.driver("bolt://127.0.0.1/:7687", auth=basic_auth("neo4j", "neo4j2")) # Change for authentication
+    driver = GraphDatabase.driver(SPOKE_URI, auth=basic_auth(SPOKE_User, SPOKE_Password)) # Change for authentication
     session = driver.session()
     print "Connected to DB!"
-    update_drugbank_cmpds(session, drugbank_process_xml(in_file))
+    update_drugbank_cmpds(session, drugbank_process_xml(drugbank_xml))
 
 def process_null(string):
     out_text = "None"
@@ -173,4 +177,14 @@ def update_drugbank_cmpds(session, new_cp):
     print "   Diff_InchI : " + str(diff_inchi)
     print "   Diff_ChEMBL : " + str(diff_chembl)
     print "   Diff_InChIKey : " + str(diff_inchikey)
-main()
+
+if __name__ == "__main__":
+    profile = False
+    if not profile:
+        main()
+    else:
+        import cProfile, pstats
+        pr = cProfile.Profile()
+        pr.runcall(main)
+        stats = pstats.Stats(pr)
+        stats.strip_dirs().sort_stats("cumulative").print_stats(20)
