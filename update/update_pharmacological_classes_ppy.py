@@ -92,7 +92,7 @@ def main():
     pc_slim = get_pc_slim(pharma_class)
 
     print "Connecting to GraphDB"
-    driver = GraphDatabase.driver("bolt://127.0.0.1/:7687", auth=basic_auth("neo4j", "neo4j2"))
+    driver = GraphDatabase.driver(SPOKE_URI, auth=basic_auth(SPOKE_User, SPOKE_Password))
     session = driver.session()
     print "Connected to DB!"
 
