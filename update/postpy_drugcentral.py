@@ -93,7 +93,7 @@ def process_structures(struct_str, col_arr):
 def get_tables(filename, table_name_arr):
     table_act_arr = []
     tbl_copy = dict()
-    file = open(filename, "r")
+    file = filename
 
     dup_arr = table_name_arr
 
@@ -148,7 +148,7 @@ def get_tables(filename, table_name_arr):
 def get_table(filename, table_name):
     table_act_arr = []
     tbl_copy = dict()
-    file = open(filename, "r")
+    file = filename
 
     exec(table_name + '_str = ""')
 
