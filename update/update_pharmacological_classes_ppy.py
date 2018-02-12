@@ -1,3 +1,8 @@
+from __future__ import print_function
+
+from paths import DrugCentral_DB
+from paths import SPOKE_URI, SPOKE_User, SPOKE_Password
+
 CYPHER_AddPC = """
     CREATE (p:PharmacologicClass)
     SET p.name = '{name}', p.identifier = '{identifier}',
@@ -62,14 +67,20 @@ source_map = {
 def main():
     from neo4j.v1 import GraphDatabase, basic_auth
     import postpy_drugcentral as ppy
+    import gzip
     import pandas as pd
-
-    filename = 'drugcentral.dump.08292017.sql' # FILL IN DRUGCENTRAL DUMP FILENAME/PATH
     
-    structures = ppy.get_table(filename, 'structures')
-    file_arr = ppy.get_tables(filename, ['pharma_class', 'identifier'])
+    
+    file1 = gzip.open(DrugCentral_DB, 'r')
+    file2 = gzip.open(DrugCentral_DB, 'r') # FILL IN DRUGCENTRAL DUMP FILENAME/PATH
+    
+    structures = ppy.get_table(file1, 'structures')
+    file_arr = ppy.get_tables(file2, ['pharma_class', 'identifier'])
     pharma_class = file_arr[0]
     identifier = file_arr[1]
+    
+    file1.close()
+    file2.close()
 
     queried_dict_1 = ppy.left_join(structures, 'id', pharma_class, 'struct_id', suffixl = "_struct", suffixr = "_pc")
     queried_dict_2 = ppy.left_join(queried_dict_1, 'id_struct', identifier, 'struct_id', suffixl = '_spc', suffixr = '_ident')
@@ -221,4 +232,13 @@ Number of PC-Drug Vestiges Flagged : {count_vestige}
 ChEMBL IDs that do not exist in New ChEMBL version : {chembl_ne}
 """.format(count_add=count_add, count_vestige=count_vestige, chembl_ne=str(chembl_not_exist))
 
-main()
+if __name__ == "__main__":
+    profile = False
+    if not profile:
+        main()
+    else:
+        import cProfile, pstats
+        pr = cProfile.Profile()
+        pr.runcall(main)
+        stats = pstats.Stats(pr)
+        stats.strip_dirs().sort_stats("cumulative").print_stats(20)
